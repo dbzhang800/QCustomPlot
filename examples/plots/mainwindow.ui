@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QCustomPlot simple demo</string>
+   <string>QCustomPlot plot examples</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -27,7 +27,7 @@
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header>../qcustomplot.h</header>
+   <header>../../qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

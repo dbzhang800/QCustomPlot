@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
-**  QCustomPlot, a simple, modern plotting widget for Qt                  **
-**  Copyright (C) 2012 Emanuel Eichhammer                                 **
+**  QCustomPlot, an easy to use, modern plotting widget for Qt            **
+**  Copyright (C) 2011, 2012, 2013, 2014 Emanuel Eichhammer               **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,18 +18,39 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.WorksLikeClockwork.com/                   **
+**  Website/Contact: http://www.qcustomplot.com/                          **
+**             Date: 27.12.14                                             **
+**          Version: 1.3.0                                                **
 ****************************************************************************/
 
-#include <QApplication>
-#include "mainwindow.h"
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-int main(int argc, char *argv[])
-{
-//  QApplication::setGraphicsSystem("raster");
-  QApplication a(argc, argv);
-  MainWindow w;
-  w.show();
-  
-  return a.exec();
+#include <QMainWindow>
+#include <QTextDocument>
+#include <QFileDialog>
+#include "qcpdocumentobject.h"
+
+namespace Ui {
+class MainWindow;
 }
+
+class MainWindow : public QMainWindow
+{
+  Q_OBJECT
+  
+public:
+  explicit MainWindow(QWidget *parent = 0);
+  ~MainWindow();
+  
+  void setupPlot();
+  
+private slots:
+  void on_actionInsert_Plot_triggered();
+  void on_actionSave_Document_triggered();
+  
+private:
+  Ui::MainWindow *ui;
+};
+
+#endif // MAINWINDOW_H

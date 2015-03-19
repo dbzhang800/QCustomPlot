@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
-**  QCustomPlot, a simple to use, modern plotting widget for Qt           **
-**  Copyright (C) 2012 Emanuel Eichhammer                                 **
+**  QCustomPlot, an easy to use, modern plotting widget for Qt            **
+**  Copyright (C) 2011, 2012, 2013, 2014 Emanuel Eichhammer               **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,8 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.WorksLikeClockwork.com/                   **
-**             Date: 09.06.12                                             **
+**  Website/Contact: http://www.qcustomplot.com/                          **
+**             Date: 27.12.14                                             **
+**          Version: 1.3.0                                                **
 ****************************************************************************/
 
 /************************************************************************************************************
@@ -43,7 +44,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include "../qcustomplot.h" // the header file of QCustomPlot. Don't forget to add it to your project, if you use an IDE, so it gets compiled.
+#include "../../qcustomplot.h" // the header file of QCustomPlot. Don't forget to add it to your project, if you use an IDE, so it gets compiled.
 
 namespace Ui {
 class MainWindow;
@@ -74,6 +75,10 @@ public:
   void setupStatisticalDemo(QCustomPlot *customPlot);
   void setupSimpleItemDemo(QCustomPlot *customPlot);
   void setupItemDemo(QCustomPlot *customPlot);
+  void setupStyledDemo(QCustomPlot *customPlot);
+  void setupAdvancedAxesDemo(QCustomPlot *customPlot);
+  void setupColorMapDemo(QCustomPlot *customPlot);
+  void setupFinancialDemo(QCustomPlot *customPlot);
   
   void setupPlayground(QCustomPlot *customPlot);
   

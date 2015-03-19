@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QInputDialog>
-#include <QLineEdit>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -10,14 +8,15 @@ MainWindow::MainWindow(QWidget *parent) :
   srand(QDateTime::currentDateTime().toTime_t());
   ui->setupUi(this);
   
-  ui->customPlot->setInteractions(QCustomPlot::iRangeDrag | QCustomPlot::iRangeZoom | QCustomPlot::iSelectAxes |
-                                  QCustomPlot::iSelectLegend | QCustomPlot::iSelectPlottables | QCustomPlot::iSelectTitle);
-  ui->customPlot->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-  ui->customPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+  ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                  QCP::iSelectLegend | QCP::iSelectPlottables);
   ui->customPlot->xAxis->setRange(-8, 8);
   ui->customPlot->yAxis->setRange(-5, 5);
-  ui->customPlot->setupFullAxesBox();
-  ui->customPlot->setTitle("Interaction Example");
+  ui->customPlot->axisRect()->setupFullAxesBox();
+  
+  ui->customPlot->plotLayout()->insertRow(0);
+  ui->customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(ui->customPlot, "Interaction Example"));
+  
   ui->customPlot->xAxis->setLabel("x Axis");
   ui->customPlot->yAxis->setLabel("y Axis");
   ui->customPlot->legend->setVisible(true);
@@ -25,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
   legendFont.setPointSize(10);
   ui->customPlot->legend->setFont(legendFont);
   ui->customPlot->legend->setSelectedFont(legendFont);
-  ui->customPlot->legend->setSelectable(QCPLegend::spItems); // legend box shall not be selectable, only legend items
+  ui->customPlot->legend->setSelectableParts(QCPLegend::spItems); // legend box shall not be selectable, only legend items
   
   addRandomGraph();
   addRandomGraph();
@@ -43,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->yAxis2, SLOT(setRange(QCPRange)));
   
   // connect some interaction slots:
-  connect(ui->customPlot, SIGNAL(titleDoubleClick(QMouseEvent*)), this, SLOT(titleDoubleClick()));
+  connect(ui->customPlot, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)), this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
   connect(ui->customPlot, SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)), this, SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
   connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
   
@@ -60,15 +59,15 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::titleDoubleClick()
+void MainWindow::titleDoubleClick(QMouseEvent* event, QCPPlotTitle* title)
 {
+  Q_UNUSED(event)
   // Set the plot title by double clicking on it
-  
   bool ok;
-  QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, ui->customPlot->title(), &ok);
+  QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
   if (ok)
   {
-    ui->customPlot->setTitle(newTitle);
+    title->setText(newTitle);
     ui->customPlot->replot();
   }
 }
@@ -76,7 +75,6 @@ void MainWindow::titleDoubleClick()
 void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart part)
 {
   // Set an axis label by double clicking on it
-  
   if (part == QCPAxis::spAxisLabel) // only react when the actual axis label is clicked, not tick label or axis backbone
   {
     bool ok;
@@ -92,7 +90,6 @@ void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart par
 void MainWindow::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item)
 {
   // Rename a graph by double clicking on its legend item
-  
   Q_UNUSED(legend)
   if (item) // only react if item was clicked (user could have clicked on border padding of legend where there is no item, then item is 0)
   {
@@ -123,18 +120,18 @@ void MainWindow::selectionChanged()
   */
   
   // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->customPlot->xAxis->selected().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis->selected().testFlag(QCPAxis::spTickLabels) ||
-      ui->customPlot->xAxis2->selected().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis2->selected().testFlag(QCPAxis::spTickLabels))
+  if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      ui->customPlot->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    ui->customPlot->xAxis2->setSelected(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->customPlot->xAxis->setSelected(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    ui->customPlot->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    ui->customPlot->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->customPlot->yAxis->selected().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis->selected().testFlag(QCPAxis::spTickLabels) ||
-      ui->customPlot->yAxis2->selected().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis2->selected().testFlag(QCPAxis::spTickLabels))
+  if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      ui->customPlot->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    ui->customPlot->yAxis2->setSelected(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->customPlot->yAxis->setSelected(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    ui->customPlot->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    ui->customPlot->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   
   // synchronize selection of graphs with selection of corresponding legend items:
@@ -155,12 +152,12 @@ void MainWindow::mousePress()
   // if an axis is selected, only allow the direction of that axis to be dragged
   // if no axis is selected, both directions may be dragged
   
-  if (ui->customPlot->xAxis->selected().testFlag(QCPAxis::spAxis))
-    ui->customPlot->setRangeDrag(ui->customPlot->xAxis->orientation());
-  else if (ui->customPlot->yAxis->selected().testFlag(QCPAxis::spAxis))
-    ui->customPlot->setRangeDrag(ui->customPlot->yAxis->orientation());
+  if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    ui->customPlot->axisRect()->setRangeDrag(ui->customPlot->xAxis->orientation());
+  else if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    ui->customPlot->axisRect()->setRangeDrag(ui->customPlot->yAxis->orientation());
   else
-    ui->customPlot->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+    ui->customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::mouseWheel()
@@ -168,17 +165,17 @@ void MainWindow::mouseWheel()
   // if an axis is selected, only allow the direction of that axis to be zoomed
   // if no axis is selected, both directions may be zoomed
   
-  if (ui->customPlot->xAxis->selected().testFlag(QCPAxis::spAxis))
-    ui->customPlot->setRangeZoom(ui->customPlot->xAxis->orientation());
-  else if (ui->customPlot->yAxis->selected().testFlag(QCPAxis::spAxis))
-    ui->customPlot->setRangeZoom(ui->customPlot->yAxis->orientation());
+  if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->xAxis->orientation());
+  else if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->yAxis->orientation());
   else
-    ui->customPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+    ui->customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::addRandomGraph()
 {
-  int n = 100; // number of points in graph
+  int n = 50; // number of points in graph
   double xScale = (rand()/(double)RAND_MAX + 0.5)*2;
   double yScale = (rand()/(double)RAND_MAX + 0.5)*2;
   double xOffset = (rand()/(double)RAND_MAX - 0.5)*4;
@@ -191,7 +188,7 @@ void MainWindow::addRandomGraph()
   for (int i=0; i<n; i++)
   {
     x[i] = (i/(double)n-0.5)*10.0*xScale + xOffset;
-    y[i] = (sin(x[i]*r1*5)*sin(cos(x[i]*r2)*r4*3)+r3*cos(sin(x[i])*r4*2))*yScale + yOffset;
+    y[i] = (qSin(x[i]*r1*5)*qSin(qCos(x[i]*r2)*r4*3)+r3*qCos(qSin(x[i])*r4*2))*yScale + yOffset;
   }
   
   ui->customPlot->addGraph();
@@ -199,7 +196,7 @@ void MainWindow::addRandomGraph()
   ui->customPlot->graph()->setData(x, y);
   ui->customPlot->graph()->setLineStyle((QCPGraph::LineStyle)(rand()%5+1));
   if (rand()%100 > 75)
-    ui->customPlot->graph()->setScatterStyle((QCP::ScatterStyle)(rand()%9+1));
+    ui->customPlot->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(rand()%9+1)));
   QPen graphPen;
   graphPen.setColor(QColor(rand()%245+10, rand()%245+10, rand()%245+10));
   graphPen.setWidthF(rand()/(double)RAND_MAX*2+1);
@@ -227,13 +224,13 @@ void MainWindow::contextMenuRequest(QPoint pos)
   QMenu *menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose);
   
-  if (ui->customPlot->legend->selectTestLegend(pos)) // context menu on legend requested
+  if (ui->customPlot->legend->selectTest(pos, false) >= 0) // context menu on legend requested
   {
-    menu->addAction("Move to top left", this, SLOT(moveLegend()))->setData((int)QCPLegend::psTopLeft);
-    menu->addAction("Move to top center", this, SLOT(moveLegend()))->setData((int)QCPLegend::psTop);
-    menu->addAction("Move to top right", this, SLOT(moveLegend()))->setData((int)QCPLegend::psTopRight);
-    menu->addAction("Move to bottom right", this, SLOT(moveLegend()))->setData((int)QCPLegend::psBottomRight);
-    menu->addAction("Move to bottom left", this, SLOT(moveLegend()))->setData((int)QCPLegend::psBottomLeft);
+    menu->addAction("Move to top left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop|Qt::AlignLeft));
+    menu->addAction("Move to top center", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop|Qt::AlignHCenter));
+    menu->addAction("Move to top right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop|Qt::AlignRight));
+    menu->addAction("Move to bottom right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom|Qt::AlignRight));
+    menu->addAction("Move to bottom left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom|Qt::AlignLeft));
   } else  // general context menu on graphs requested
   {
     menu->addAction("Add random graph", this, SLOT(addRandomGraph()));
@@ -254,7 +251,7 @@ void MainWindow::moveLegend()
     int dataInt = contextAction->data().toInt(&ok);
     if (ok)
     {
-      ui->customPlot->legend->setPositionStyle((QCPLegend::PositionStyle)dataInt);
+      ui->customPlot->axisRect()->insetLayout()->setInsetAlignment(0, (Qt::Alignment)dataInt);
       ui->customPlot->replot();
     }
   }
